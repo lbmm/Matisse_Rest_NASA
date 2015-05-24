@@ -18,8 +18,41 @@ log.setLevel(logging.INFO)
 __REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=f'
 
 """
-To use
 
+usage: matisseRestNASA.py [-h] --target TARGET --ihid IHID --iid IID
+                          [--c1min WESTERNLON] [--c1max EASTERNLON]
+                          [--c2min MINLAT] [--c2max MAXLAT]
+                          [--Time_min MINOBTIME] [--Time_max MAXOBTIME]
+                          [--Incidence_min MININANGLE]
+                          [--Incidence_max MAXINANGLE]
+                          [--Emerge_min MINEMANGLE] [--Emerge_max MAXEMANGLE]
+                          [--Phase_min MINPHANGLE] [--Phase_max MAXPJANGLE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --c1min WESTERNLON    Min of first coordinate (in degrees by default)
+  --c1max EASTERNLON    Max of first coordinate (in degrees by default)
+  --c2min MINLAT        Min of second coordinate (in degrees by default)
+  --c2max MAXLAT        Max of second coordinate (in degrees by default)
+  --Time_min MINOBTIME  Acquisition start time - format YYYY-MM-DDTHH:MM:SS.m
+  --Time_max MAXOBTIME  Acquisition stop time - format YYYY-MM-DDTHH:MM:SS.m
+  --Incidence_min MININANGLE
+                        Min incidence angle (solar zenithal angle)
+  --Incidence_max MAXINANGLE
+                        Max incidence angle (solar zenithal angle)
+  --Emerge_min MINEMANGLE
+                        Min emerge angle
+  --Emerge_max MAXEMANGLE
+                        Max emerge angle
+  --Phase_min MINPHANGLE
+                        Min phase angle
+  --Phase_max MAXPJANGLE
+                        Max phase angle
+
+required  arguments:
+  --target TARGET       PDS target name
+  --ihid IHID           instrument host ID
+  --iid IID             instrument ID
 """
 
 
@@ -182,10 +215,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="")
   # Define the command line options
-    parser.add_argument('--target', dest='target',
+
+    requiredNamed = parser.add_argument_group('required  arguments')
+    requiredNamed.add_argument('--target', dest='target',
                         help="PDS target name", required=True)
-    parser.add_argument('--ihid', dest='ihid', help="instrument host ID", required=True)
-    parser.add_argument('--iid', dest='iid', help="instrument  ID", required=True)
+    requiredNamed.add_argument('--ihid', dest='ihid', help="instrument host ID", required=True)
+    requiredNamed.add_argument('--iid', dest='iid', help="instrument  ID", required=True)
 
     #coordinates (c1, c2, c3)
     parser.add_argument('--c1min', dest='westernlon', type=float,
@@ -196,6 +231,8 @@ if __name__ == "__main__":
                         help="Min of second coordinate (in degrees by default) ")
     parser.add_argument('--c2max', type=float, dest='maxlat',
                         help="Max of second coordinate (in degrees by default) ")
+
+    #TODO : fix the c3min-max arguments
     """
 
     parser.add_argument('--c3min', type=float, dest='maxlat',
