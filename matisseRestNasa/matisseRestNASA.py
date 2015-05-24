@@ -165,7 +165,20 @@ def valid_date(s):
         raise argparse.ArgumentTypeError(msg)
 
 
-def main():
+def main(parser):
+
+    #creates the NASAQuery obj
+    nq = NASAQuery()
+     # Parse the arguments and directly load in the NASAQuery namespace
+    args = parser.parse_args(namespace=nq)
+    #associate the files
+    files = nq.associateFiles()
+
+    for key, value in files.iteritems():
+        log.info("fileID: %s;\n files: \n%s" % (key, '\n'.join(value)))
+
+
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="")
   # Define the command line options
@@ -215,16 +228,7 @@ def main():
     parser.add_argument('--Phase_max', dest='maxpjangle', type=float,
                         help="Max phase angle")
 
-    #creates the NASAQuery obj
-    nq = NASAQuery()
-     # Parse the arguments and directly load in the NASAQuery namespace
-    args = parser.parse_args(namespace=nq)
-    #associate the files
-    nq.associateFiles()
-
-if __name__ == "__main__":
-
-    main()
+    main(parser)
 
 
 
