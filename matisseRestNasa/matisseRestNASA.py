@@ -9,12 +9,6 @@ import argparse
 
 import logging
 
-FORMAT = "%(message)s"
-logging.basicConfig(format=FORMAT)
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
-
-
 __REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=f'
 
 """
@@ -27,6 +21,7 @@ usage: matisseRestNASA.py [-h] --target TARGET --ihid IHID --iid IID
                           [--Incidence_max MAXINANGLE]
                           [--Emerge_min MINEMANGLE] [--Emerge_max MAXEMANGLE]
                           [--Phase_min MINPHANGLE] [--Phase_max MAXPJANGLE]
+                          [--log LOG]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -48,6 +43,9 @@ optional arguments:
                         Min phase angle
   --Phase_max MAXPJANGLE
                         Max phase angle
+
+  --log LOG             log file, default stdout
+
 
 required  arguments:
   --target TARGET       PDS target name
@@ -140,16 +138,16 @@ class NASAQuery(object):
                 #check if there was an error
                 error = xmldoc.getElementsByTagName('Error')
                 if error:
-                    log.critical("Error retrieving data for URL %s: \n" % a_url +
-                                 self.read_nodelist(error))
+                    logging.critical("Error retrieving data for URL %s: \n" % a_url +
+                                      self.read_nodelist(error))
                 else:
-                    log.critical("Query didn't produce any files. Please check parameters")
+                    logging.critical("Query didn't produce any files. Please check parameters")
                 raise NASAQueryException
 
         except urllib2.URLError as e:
-            log.critical(e)
+            logging.critical(e)
         except expat.ExpatError as e:
-            log.critical(e)
+            logging.critical(e)
 
         return files
 
@@ -167,7 +165,7 @@ class NASAQuery(object):
             try:
                 all_files.extend(self.fetchData(a_url))
             except NASAQueryException as e:
-                log.critical(e)
+                logging.critical(e)
                 continue
 
         for a_file in all_files:
@@ -202,13 +200,24 @@ def main(parser):
 
     #creates the NASAQuery obj
     nq = NASAQuery()
-     # Parse the arguments and directly load in the NASAQuery namespace
+    # Parse the arguments and directly load in the NASAQuery namespace
     args = parser.parse_args(namespace=nq)
+
+    #setup the logging
+    log_format = "%(message)s"
+    if args.log:
+        logging.basicConfig(filename=args.log, filemode='w',
+                            format=log_format, level=logging.INFO)
+    else:
+        logging.basicConfig(format=log_format, level=logging.INFO)
+
     #associate the files
     files = nq.associateFiles()
 
     for key, value in files.iteritems():
-        log.info("fileID: %s;\n files: \n%s" % (key, '\n'.join(value)))
+        #skipping only geometry: needs both
+        if len(value) > 1:
+            logging.info("fileID: %s;\n files: \n%s" % (key, '\n'.join(value)))
 
 
 if __name__ == "__main__":
@@ -232,14 +241,6 @@ if __name__ == "__main__":
     parser.add_argument('--c2max', type=float, dest='maxlat',
                         help="Max of second coordinate (in degrees by default) ")
 
-    #TODO : fix the c3min-max arguments
-    """
-
-    parser.add_argument('--c3min', type=float, dest='maxlat',
-                        help="Min of third coordinate (in degrees by default) ")
-    parser.add_argument('--c3max', type=float, dest='c3max',
-                        help="Max of third coordinate (in degrees by default) ")
-    """
     #times
     parser.add_argument('--Time_min', dest='minobtime', type=valid_date,
                         help="Acquisition start time - format YYYY-MM-DDTHH:MM:SS.m")
@@ -264,6 +265,9 @@ if __name__ == "__main__":
 
     parser.add_argument('--Phase_max', dest='maxpjangle', type=float,
                         help="Max phase angle")
+
+    parser.add_argument('--log', dest='log',
+                        help="log file, default stdout")
 
     main(parser)
 
