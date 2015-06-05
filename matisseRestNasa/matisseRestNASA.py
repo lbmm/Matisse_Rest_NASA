@@ -7,9 +7,10 @@ from xml.parsers import expat
 import argparse
 
 
+
 import logging
 
-__REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=f'
+__REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=Mf'
 
 """
 
@@ -99,8 +100,21 @@ class NASAQuery(object):
         :param nodelist:
         :return: string of the xml element
         """
+        if nodelist:
+            return " ".join(t.nodeValue for t in nodelist[0].childNodes if t.nodeType == t.TEXT_NODE)
+        else:
+            return None
 
-        return " ".join(t.nodeValue for t in nodelist[0].childNodes if t.nodeType == t.TEXT_NODE)
+    def readMetadata(self, xml_tag):
+        """
+        Read the metadata of the observation
+        :param: xml that contains al the metadata information
+        :return: dictionary with all metadata read
+        """
+        import matisse_configuration as cfg
+
+        return {(key, self.read_nodelist(xml_tag.getElementsByTagName(value)))
+                for key, value in cfg.metadata.iteritems()}
 
     def fetchData(self, a_url):
 
@@ -116,18 +130,25 @@ class NASAQuery(object):
 
         """
 
+        info_files = {}
         files = []
         try:
             xmlNASA = urllib2.urlopen(a_url)
             xmldoc = minidom.parseString(xmlNASA.read())
-            product_files = xmldoc.getElementsByTagName('Product_file')
-            for a_tag in product_files:
+            products = xmldoc.getElementsByTagName('Product')
 
+            for a_tag in products:
+
+                observation_id = self.read_nodelist(a_tag.getElementsByTagName('Observation_id'))
+
+                metadata = self.readMetadata(a_tag)
                 type_tag = a_tag.getElementsByTagName('Type')
 
                 if self.read_nodelist(type_tag) == 'Product':
                     url_tag = a_tag.getElementsByTagName('URL')
                     files.append(self.read_nodelist(url_tag))
+                    info_files[observation_id] = {'metadata': metadata,
+                                                  'files': files}
                     #one product file per <Product_file> tag
                     #continue the loop
                     continue
@@ -139,7 +160,7 @@ class NASAQuery(object):
                 error = xmldoc.getElementsByTagName('Error')
                 if error:
                     logging.critical("Error retrieving data for URL %s: \n" % a_url +
-                                      self.read_nodelist(error))
+                                     self.read_nodelist(error))
                 else:
                     logging.critical("Query didn't produce any files. Please check parameters")
                 raise NASAQueryException
@@ -149,29 +170,31 @@ class NASAQuery(object):
         except expat.ExpatError as e:
             logging.critical(e)
 
-        return files
+        return info_files
 
     def associateFiles(self):
         """
         Call the fetch data for all the composed URLs
         fetch all information and associate the files to a unique ID
         Return:
-           Dictionary key -> ID
+           Dictionary key -> observation ID
                       values -> associate files
         """
         all_files, result = [], {}
 
         for a_url in self.composeURL():
             try:
-                all_files.extend(self.fetchData(a_url))
+                tmp_result = self.fetchData(a_url)
+
+                for key in tmp_result:
+                    if key in result:
+                        result[key]['files'].extend(tmp_result[key]['files'])
+                    else:
+                        result[key] = tmp_result[key]
+
             except NASAQueryException as e:
                 logging.critical(e)
                 continue
-
-        for a_file in all_files:
-            file_name = a_file[string.rfind(a_file, "/") + 2:]
-            id_filename = file_name[1: string.find(file_name, "_")]
-            result.setdefault(id_filename, []).append(a_file)
 
         return result
 
@@ -212,12 +235,15 @@ def main(parser):
         logging.basicConfig(format=log_format, level=logging.INFO)
 
     #associate the files
-    files = nq.associateFiles()
+    info_files = nq.associateFiles()
 
-    for key, value in files.iteritems():
+    for key in info_files:
         #skipping only geometry: needs both
-        if len(value) > 1:
-            logging.info("fileID: %s;\n files: \n%s" % (key, '\n'.join(value)))
+        if len(info_files[key]['files']) > 1:
+            logging.info('Observation ID: %s' % key)
+            logging.info('\n'.join(['%s: %s' % (metadata_key, metadata_value) for metadata_key, metadata_value
+                                     in info_files[key]['metadata']]))
+            logging.info("fileID: %s;\n files: \n%s" % (key, '\n'.join(info_files[key]['files'])))
 
 
 if __name__ == "__main__":
