@@ -131,7 +131,15 @@ def main(parser):
 
     info_files = nq.fetchData()
 
-    print json.dumps(info_files, default=utilities.set_default)
+    for key  in info_files:
+
+        logging.info('Observation ID: %s' % key)
+        logging.info('\n'.join(['%s: %s' % (metadata_key, metadata_value) for metadata_key, metadata_value
+                                in info_files[key]['metadata']]))
+        logging.info("files: \n%s" % '\n'.join(info_files[key]['files']))
+        if 'geometry_files' in info_files[key]:
+            logging.info("geometry_files: %s;" % '\n'.join(info_files[key]['geometry_files']))
+
 
 if __name__ == "__main__":
 
