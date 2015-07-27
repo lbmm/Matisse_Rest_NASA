@@ -91,8 +91,7 @@ class NASAQueryMoon(NASAQuery):
                 info_files[self.read_nodelist(a_tag.getElementsByTagName('pdsid'))] = \
                      {'metadata': self.readMetadata(a_tag), 'files': files}
                 if geometry_files:
-                    info_files.update({'geometry_files': geometry_files})
-
+                    info_files[self.read_nodelist(a_tag.getElementsByTagName('pdsid'))].update({'geometry_files': geometry_files})
                  #no result: two options
                  #1- NASA page returns error
                  #2- query didn't produce output
@@ -131,14 +130,14 @@ def main(parser):
 
     info_files = nq.fetchData()
 
-    for key  in info_files:
+    for key in info_files:
 
         logging.info('Observation ID: %s' % key)
         logging.info('\n'.join(['%s: %s' % (metadata_key, metadata_value) for metadata_key, metadata_value
                                 in info_files[key]['metadata']]))
-        logging.info("files: \n%s" % '\n'.join(info_files[key]['files']))
+        logging.info("files: %s" % '\n'.join(info_files[key]['files']))
         if 'geometry_files' in info_files[key]:
-            logging.info("geometry_files: %s;" % '\n'.join(info_files[key]['geometry_files']))
+            logging.info("geometry_files: %s" % '\n'.join(info_files[key]['geometry_files']))
 
 
 if __name__ == "__main__":
