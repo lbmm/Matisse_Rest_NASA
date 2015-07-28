@@ -1,5 +1,9 @@
 # -*- coding:utf-8 -*-
 
+
+import json
+from utilities import set_default
+
 __REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=Mfp'
 
 
@@ -29,6 +33,7 @@ class NASAQuery(object):
         self.target = target
         self.ihid = ihid
         self.iid = iid
+        self.verbose = False
         #not mandatory parameter, this takes parameters dynamical
         for name, value in parameters.iteritems():
             setattr(self, name, value)
@@ -81,4 +86,24 @@ class NASAQuery(object):
         else:
             return None
 
+    def print_info(self, info_files, logging):
+        """
+        print the information to pass to matisse
+        if verbose is activated, extended information are printed, default is json
+        :param logging
+        :return: logging filled with info
+        """
+
+        for key, value in info_files.iteritems():
+
+            if self.verbose:
+                logging.info('Observation ID: %s' % key)
+                logging.info('\n'.join(['%s: %s' % (metadata_key, metadata_value) for metadata_key, metadata_value
+                                      in value['metadata']]))
+                logging.info("files: %s" % '\n'.join(value['files']))
+                if 'geometry_files' in info_files[key]:
+                    logging.info("geometry_files: %s" % '\n'.join(value['geometry_files']))
+            else:
+                logging.info(key)
+                logging.info(json.dumps(value, default=set_default))
 

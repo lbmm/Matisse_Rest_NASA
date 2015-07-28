@@ -8,7 +8,8 @@ import logging
 
 from nasaQuery import NASAQuery, NASAQueryException
 import utilities
-import moonconfig
+import parserconfig
+
 
 
 class NASAQueryMoon(NASAQuery):
@@ -78,7 +79,7 @@ class NASAQueryMoon(NASAQuery):
 
         info_files = {}
         #select here what to read from the configuration define by mission and instrument
-        config = moonconfig.configurations[self.ihid][self.iid]
+        config = parserconfig.configurations[self.ihid][self.iid]
         try:
 
             xmlNASA = urllib2.urlopen(self.composeURL(config['pt']))
@@ -113,6 +114,15 @@ class NASAQueryMoon(NASAQuery):
         return info_files
 
 
+def add_required_arguments(parser):
+
+    requiredNamed = parser.add_argument_group('required  arguments')
+
+    requiredNamed.add_argument('--ihid', dest='ihid', help="instrument host ID", choices=parserconfig.ihid_moon,
+                               required=True)
+    requiredNamed.add_argument('--iid', dest='iid', help="instrument  ID", choices=parserconfig.iid_moon,
+                               required=True)
+
 def main(parser):
 
     #creates the NASAQuery obj
@@ -129,65 +139,12 @@ def main(parser):
         logging.basicConfig(format=log_format, level=logging.INFO)
 
     info_files = nq.fetchData()
+    nq.print_info(info_files,logging)
 
-    for key in info_files:
-
-        logging.info('Observation ID: %s' % key)
-        logging.info('\n'.join(['%s: %s' % (metadata_key, metadata_value) for metadata_key, metadata_value
-                                in info_files[key]['metadata']]))
-        logging.info("files: %s" % '\n'.join(info_files[key]['files']))
-        if 'geometry_files' in info_files[key]:
-            logging.info("geometry_files: %s" % '\n'.join(info_files[key]['geometry_files']))
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Query to the NASA ODE interface for the Moon target")
-    #Define the command line options
-
-    requiredNamed = parser.add_argument_group('required  arguments')
-
-    requiredNamed.add_argument('--ihid', dest='ihid', help="instrument host ID", choices=moonconfig.ihid,
-                               required=True)
-    requiredNamed.add_argument('--iid', dest='iid', help="instrument  ID", choices=moonconfig.iid,
-                               required=True)
-
-    #coordinates (c1, c2, c3)
-    parser.add_argument('--c1min', dest='westernlon', type=float,
-                        help="Min of first coordinate (in degrees by default)")
-    parser.add_argument('--c1max', dest='easternlon', type=float,
-                        help="Max of first coordinate (in degrees by default)")
-    parser.add_argument('--c2min', type=float, dest='minlat',
-                        help="Min of second coordinate (in degrees by default) ")
-    parser.add_argument('--c2max', type=float, dest='maxlat',
-                        help="Max of second coordinate (in degrees by default) ")
-
-    #times
-    parser.add_argument('--Time_min', dest='minobtime', type=utilities.valid_date,
-                        help="Acquisition start time - format YYYY-MM-DDTHH:MM:SS.m")
-    parser.add_argument('--Time_max', dest='maxobtime', type=utilities.valid_date,
-                        help="Acquisition stop time - format YYYY-MM-DDTHH:MM:SS.m")
-    #angles
-
-    parser.add_argument('--Incidence_min', dest='mininangle', type=float,
-                        help="Min incidence angle (solar zenithal angle)")
-
-    parser.add_argument('--Incidence_max', dest='maxinangle', type=float,
-                        help="Max incidence angle (solar zenithal angle)")
-
-    parser.add_argument('--Emerge_min', dest='minemangle', type=float,
-                        help="Min emerge angle")
-
-    parser.add_argument('--Emerge_max', dest='maxemangle', type=float,
-                        help="Max emerge angle")
-
-    parser.add_argument('--Phase_min', dest='minphangle', type=float,
-                        help="Min phase angle")
-
-    parser.add_argument('--Phase_max', dest='maxpjangle', type=float,
-                        help="Max phase angle")
-
-    parser.add_argument('--log', dest='log',
-                        help="log file, default stdout")
-
+    parser = parserconfig.argumentParser('Matisse Nasa query for the Moon target')
+    add_required_arguments(parser)
     main(parser)

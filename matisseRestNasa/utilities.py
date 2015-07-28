@@ -23,6 +23,10 @@ def valid_date(s):
         raise argparse.ArgumentTypeError(msg)
 
 
+def str2bool(v):
+  #susendberg's function
+  return v.lower() in ("yes", "true", "t", "1")
+
 
 def set_default(obj):
     if isinstance(obj, set):
