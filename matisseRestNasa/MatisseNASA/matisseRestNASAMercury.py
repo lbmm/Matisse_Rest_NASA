@@ -1,83 +1,36 @@
 # -*- coding:utf-8 -*-
-import string
 import urllib2
 from datetime import datetime
 from xml.dom import minidom
 from xml.parsers import expat
 import argparse
-
-
-
 import logging
+
+from nasaQuery import NASAQuery, NASAQueryException
 
 __REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=Mf'
 
-"""
-
-usage: matisseRestNASA.py [-h] --target TARGET --ihid IHID --iid IID
-                          [--c1min WESTERNLON] [--c1max EASTERNLON]
-                          [--c2min MINLAT] [--c2max MAXLAT]
-                          [--Time_min MINOBTIME] [--Time_max MAXOBTIME]
-                          [--Incidence_min MININANGLE]
-                          [--Incidence_max MAXINANGLE]
-                          [--Emerge_min MINEMANGLE] [--Emerge_max MAXEMANGLE]
-                          [--Phase_min MINPHANGLE] [--Phase_max MAXPJANGLE]
-                          [--log LOG]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --c1min WESTERNLON    Min of first coordinate (in degrees by default)
-  --c1max EASTERNLON    Max of first coordinate (in degrees by default)
-  --c2min MINLAT        Min of second coordinate (in degrees by default)
-  --c2max MAXLAT        Max of second coordinate (in degrees by default)
-  --Time_min MINOBTIME  Acquisition start time - format YYYY-MM-DDTHH:MM:SS.m
-  --Time_max MAXOBTIME  Acquisition stop time - format YYYY-MM-DDTHH:MM:SS.m
-  --Incidence_min MININANGLE
-                        Min incidence angle (solar zenithal angle)
-  --Incidence_max MAXINANGLE
-                        Max incidence angle (solar zenithal angle)
-  --Emerge_min MINEMANGLE
-                        Min emerge angle
-  --Emerge_max MAXEMANGLE
-                        Max emerge angle
-  --Phase_min MINPHANGLE
-                        Min phase angle
-  --Phase_max MAXPJANGLE
-                        Max phase angle
-
-  --log LOG             log file, default stdout
 
 
-required  arguments:
-  --target TARGET       PDS target name
-  --ihid IHID           instrument host ID
-  --iid IID             instrument ID
-"""
+class NASAQueryMercury(NASAQuery):
 
-
-class NASAQueryException(Exception):
-    pass
-
-
-class NASAQuery(object):
-
-    """ NASAQuery class sets all the parameters needed for the query.
+    """ NASAQueryMercury class sets all the parameters needed for the query.
     Ables to perform the query and to return the results
 
     Mandatory Attributes:
-      target (str): target to query
       ihid (str): ID
       iid (str): instrument ID
     """
-    def __init__(self, target=None, ihid=None, iid=None, **parameters):
 
-        self.target = target
-        self.ihid = ihid
-        self.iid = iid
-        #not mandatory parameter, this takes parameters dynamical
-        for name, value in parameters.iteritems():
-            setattr(self, name, value)
+    def __init__(self, ihid=None, iid=None, **parameters):
+        """
+        Defines mandatory parameters for the observation
+        :param ihid: ihid (ID) of the observation
+        :param iid: iid (instrument ID) of the observation
+        """
 
+        super(NASAQuery, self).__init__()
+        self.target = 'mercury'
 
 
     def composeURL(self):
@@ -111,7 +64,7 @@ class NASAQuery(object):
         :param: xml that contains al the metadata information
         :return: dictionary with all metadata read
         """
-        import matisse_configuration as cfg
+        from matisseRestNasa.MatisseNASA import matisse_configuration as cfg
 
         return {(key, self.read_nodelist(xml_tag.getElementsByTagName(value)))
                 for key, value in cfg.metadata.iteritems()}

@@ -2,14 +2,10 @@
 import urllib2
 from xml.dom import minidom
 from xml.parsers import expat
-import json
-import argparse
 import logging
 
 from nasaQuery import NASAQuery, NASAQueryException
-import utilities
-import parserconfig
-
+import NASAparserconfig
 
 
 class NASAQueryMoon(NASAQuery):
@@ -79,7 +75,7 @@ class NASAQueryMoon(NASAQuery):
 
         info_files = {}
         #select here what to read from the configuration define by mission and instrument
-        config = parserconfig.configurations[self.ihid][self.iid]
+        config = NASAparserconfig.configurations[self.ihid][self.iid]
         try:
 
             xmlNASA = urllib2.urlopen(self.composeURL(config['pt']))
@@ -118,9 +114,9 @@ def add_required_arguments(parser):
 
     requiredNamed = parser.add_argument_group('required  arguments')
 
-    requiredNamed.add_argument('--ihid', dest='ihid', help="instrument host ID", choices=parserconfig.ihid_moon,
+    requiredNamed.add_argument('--ihid', dest='ihid', help="instrument host ID", choices=NASAparserconfig.ihid_moon,
                                required=True)
-    requiredNamed.add_argument('--iid', dest='iid', help="instrument  ID", choices=parserconfig.iid_moon,
+    requiredNamed.add_argument('--iid', dest='iid', help="instrument  ID", choices=NASAparserconfig.iid_moon,
                                required=True)
 
 def main(parser):
@@ -145,6 +141,6 @@ def main(parser):
 
 if __name__ == "__main__":
 
-    parser = parserconfig.argumentParser('Matisse Nasa query for the Moon target')
+    parser = NASAparserconfig.argumentParser('Matisse Nasa query for the Moon target')
     add_required_arguments(parser)
     main(parser)

@@ -2,7 +2,6 @@
 
 
 import json
-from utilities import set_default
 
 __REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=Mfp'
 
@@ -60,9 +59,9 @@ class NASAQuery(object):
         :return: dictionary with all metadata read
         """
 
-        import matisse_configuration as cfg
+        from matisseRestNasa.MatisseNASA import matisse_configuration as cfg
 
-        return {(key, self.read_nodelist(xml_tag.getElementsByTagName(value)))
+        return {key: self.read_nodelist(xml_tag.getElementsByTagName(value))
                 for key, value in cfg.getMetadata(self.ihid).iteritems()}
 
     @property
@@ -99,11 +98,20 @@ class NASAQuery(object):
             if self.verbose:
                 logging.info('Observation ID: %s' % key)
                 logging.info('\n'.join(['%s: %s' % (metadata_key, metadata_value) for metadata_key, metadata_value
-                                      in value['metadata']]))
+                                         in value['metadata'].iteritems()]))
                 logging.info("files: %s" % '\n'.join(value['files']))
-                if 'geometry_files' in info_files[key]:
+                if 'geometry_files' in value:
                     logging.info("geometry_files: %s" % '\n'.join(value['geometry_files']))
             else:
                 logging.info(key)
-                logging.info(json.dumps(value, default=set_default))
+                all_info_dict = value['metadata']
+                file_path = ''.join(value['files']).split("/")
+
+                all_info_dict['name'] = file_path[-1]
+                all_info_dict['observationDir'] = '/'.join(file_path[:-1])
+
+                if 'geometry_files' in value:
+                    all_info_dict['geometry_files'] = ' '.join(value['geometry_files'])
+
+                logging.info(json.dumps(all_info_dict))
 

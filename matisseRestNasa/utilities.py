@@ -28,10 +28,4 @@ def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 
 
-def set_default(obj):
-    if isinstance(obj, set):
-        return dict(obj)
-    raise TypeError
-
-
 

@@ -7,7 +7,7 @@ Defines if there are conditions for the files to satisfy
 """
 import argparse
 
-from utilities import valid_date, str2bool
+from matisseRestNasa.utilities import valid_date, str2bool
 
 def argumentParser(description=''):
 
