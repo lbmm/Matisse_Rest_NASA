@@ -8,7 +8,7 @@ setup(
     author='',
     author_email='',
     packages=find_packages(exclude=['test']),
-    description='Matisse ODE Rest Nasa queries',
+    description='Matisse scripts for external data retrieval',
     long_description=open('README.md').read(),
     url='',
 )

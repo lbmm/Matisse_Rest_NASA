@@ -1,15 +1,18 @@
 """
-This the configuration file for The Moon data retrival
-List all the accepted IHID and all the IID
-define for each which files are the imagine files and the
-geometry files, and for each mission what pt use.
-Defines if there are conditions for the files to satisfy
+This the
 """
 import argparse
 
-from matisseRestNasa.utilities import valid_date, str2bool
+from utilities import valid_date, str2bool
 
 def argumentParser(description=''):
+
+    """
+    set a command line parser common for the NASAqueries.
+
+    :param description:
+    :return: parser
+    """
 
     parser = argparse.ArgumentParser(description=description)
     # Define the command line options
@@ -60,6 +63,15 @@ def argumentParser(description=''):
     return parser
 
 
+"""
+Configuration options for The Moon data retrieval
+List all the accepted IHID and all the IID
+define for each which files are the imagine files and the
+geometry files, and for each mission what pt use.
+Defines if there are conditions for the files to satisfy
+"""
+
+
 # MOON IHID that script accepts
 ihid_moon = ['CH1-ORB', 'CLEM', 'LRO']
 
@@ -73,4 +85,16 @@ configurations = {'CH1-ORB': {'M3':
                                {'pt': 'EDR'}},
                   'LRO': {'LROC':
                               {'pt': 'CDRNAC'}}}
+
+"""
+Configuration options for The Mercury data retrieval
+List all the accepted IHID and all the IID
+"""
+
+# Mercury IHID that script accepts
+ihid_mercury = ['messenger']
+
+#Moon iIID (Instrument) that the script accepts
+iid_mercury = ['mdis-nac']
+
 

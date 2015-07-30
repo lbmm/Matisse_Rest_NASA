@@ -4,8 +4,11 @@ Configuration file for the matisseRestNasa
 """
 from collections import OrderedDict
 
-""" metadata translates fields name from Nasa to
-    Matisse"""
+"""
+metadata translates fields name from Nasa namespace to
+   the  Matisse namespace
+
+"""
 
 metadata = OrderedDict([
     ("start_time", "UTC_start_times"),

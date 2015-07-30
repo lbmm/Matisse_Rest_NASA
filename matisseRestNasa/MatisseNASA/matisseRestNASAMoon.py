@@ -10,7 +10,7 @@ import NASAparserconfig
 
 class NASAQueryMoon(NASAQuery):
 
-    """ NASAQuery class sets all the parameters needed for the query.
+    """ NASAQueryMoon class sets all the parameters needed for the query.
     Ables to perform the query and to return the results
 
     Mandatory Attributes:
@@ -21,6 +21,7 @@ class NASAQueryMoon(NASAQuery):
     def __init__(self, ihid=None, iid=None, **parameters):
         """
         Defines mandatory parameters for the observation
+        set the target to 'moon'
         :param ihid: ihid (ID) of the observation
         :param iid: iid (instrument ID) of the observation
         """
@@ -31,8 +32,8 @@ class NASAQueryMoon(NASAQuery):
     def extractFiles(self, a_tag):
         """
         Extract observation metadata, ID name, and URL links
-        :param a_url: url of the observation
-        :param ihid: ihid of the observation
+        Each mission has a different way to retrieve data
+        :param  a selected xml tag
         :return: info_files (metadata and associated files based on the file ID)
         """
 
@@ -111,6 +112,11 @@ class NASAQueryMoon(NASAQuery):
 
 
 def add_required_arguments(parser):
+    """
+    set specific  parameters to the command line parser
+    :param parser:
+    :return:
+    """
 
     requiredNamed = parser.add_argument_group('required  arguments')
 
@@ -135,7 +141,7 @@ def main(parser):
         logging.basicConfig(format=log_format, level=logging.INFO)
 
     info_files = nq.fetchData()
-    nq.print_info(info_files,logging)
+    nq.print_info(info_files, logging)
 
 
 

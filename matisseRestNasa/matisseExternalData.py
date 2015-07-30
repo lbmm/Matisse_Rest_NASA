@@ -1,37 +1,82 @@
 # -*- coding:utf-8 -*-
+"""
+Script to query external data for the Matisse tool
+
+
+Usage :
+
+python matisseExternalData.py
+
+Matisse query for external catalog
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --c1min C1MIN         Min of first coordinate (in degrees by default)
+  --c1max C1MAX         Max of first coordinate (in degrees by default)
+  --c2min C2MIN         Min of second coordinate (in degrees by default)
+  --c2max C2MAX         Max of second coordinate (in degrees by default)
+  --Time_min TIME_MIN   Acquisition start time - format YYYY-MM-DDTHH:MM:SS.m
+  --Time_max TIME_MAX   Acquisition stop time - format YYYY-MM-DDTHH:MM:SS.m
+  --Incidence_min INCIDENCE_MIN
+                        Min incidence angle (solar zenithal angle)
+  --Incidence_max INCIDENCE_MAX
+                        Max incidence angle (solar zenithal angle)
+  --Emerge_min EMERGE_MIN
+                        Min emerge angle
+  --Emerge_max EMERGE_MAX
+                        Max emerge angle
+  --Phase_min PHASE_MIN
+                        Min phase angle
+  --Phase_max PHASE_MAX
+                        Max phase angle
+  --log LOG             log file, default stdout
+  --verbose VERBOSE     verbose mode, default json
+
+required  arguments:
+  --target {mercury,moon}
+                        target to query
+  --ihid IHID           instrument host ID
+  --iid IID             instrument ID
+
+"""
+
+
 
 
 SCRIPT_CONFIG = {'moon': 'MatisseNASA/matisseRestNASAMoon.py',
-                 'mercury': 'MatisseNASA/matisseRestNASAMercury'}
+                 'mercury': 'MatisseNASA/matisseRestNASAMercury.py'}
 
 
 import argparse
-import os
+import subprocess
+
+def nice_print(string_toprint):
+    if string_toprint: print string_toprint
 
 def main(parser):
 
     args = parser.parse_args()
 
-    script_to_call = SCRIPT_CONFIG[args.target.lower()]
+    script_to_call = SCRIPT_CONFIG.get(args.target.lower(), '')
 
-    cmd = "python %s " % script_to_call
-    stdin, stdout, stderr = os.popen3(cmd)
-    stdin.close()
-    errmsg = stderr.readlines()
-    outmsg = stdout.readlines()
-    print errmsg
-    print outmsg
-    stdout.close()
-    stderr.close()
+    switch = ' '.join(['--%s %s' % (item, value) for item, value in args.__dict__.iteritems()
+                        if value and item != 'target'])
 
+    cmd = "python %s %s " % (script_to_call, switch)
 
+    process = subprocess.Popen(cmd, shell=True,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
 
+    # wait for the process to terminate
+    out, err = process.communicate()
 
+    nice_print(out)
+    nice_print(err)
+    nice_print(process.returncode)
 
 
 if __name__ == "__main__":
-
-
 
     parser = argparse.ArgumentParser(description="Matisse query for external catalog")
     # Define the command line options
@@ -89,6 +134,5 @@ if __name__ == "__main__":
 
     parser.add_argument('--verbose',
                         help="verbose mode, default json")
-
 
     main(parser)

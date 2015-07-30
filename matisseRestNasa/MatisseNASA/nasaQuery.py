@@ -59,7 +59,7 @@ class NASAQuery(object):
         :return: dictionary with all metadata read
         """
 
-        from matisseRestNasa.MatisseNASA import matisse_configuration as cfg
+        import matisse_configuration as cfg
 
         return {key: self.read_nodelist(xml_tag.getElementsByTagName(value))
                 for key, value in cfg.getMetadata(self.ihid).iteritems()}

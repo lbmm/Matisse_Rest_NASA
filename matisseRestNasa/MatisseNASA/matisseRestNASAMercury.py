@@ -6,16 +6,18 @@ from xml.parsers import expat
 import argparse
 import logging
 
+
 from nasaQuery import NASAQuery, NASAQueryException
-
-__REST_NASA__ = 'http://oderest.rsl.wustl.edu/live2/?query=p&output=XML&r=Mf'
-
+import NASAparserconfig
 
 
 class NASAQueryMercury(NASAQuery):
 
-    """ NASAQueryMercury class sets all the parameters needed for the query.
-    Ables to perform the query and to return the results
+    """ NASAQuery class sets all the parameters needed for the query.
+    Ables to perform the query and to return the results.
+    NASAQueryMercury class specific for the mercury target
+
+    Available ihid, and iid set in the NASAparserconfig
 
     Mandatory Attributes:
       ihid (str): ID
@@ -33,43 +35,7 @@ class NASAQueryMercury(NASAQuery):
         self.target = 'mercury'
 
 
-    def composeURL(self):
-        """
-         Need to compose two URLs:
-         1- product type pt=cdrnac -> calibrated products
-         2- product type pt=ddrnac -> derived  products
-         Return: the two urls
-        """
-
-        parameters = '&'.join(['%s=%s' % (item, value) for item, value in self.__dict__.iteritems()
-                               if value])
-
-        return __REST_NASA__ + '&pt=cdrnac&' + parameters, __REST_NASA__ + '&pt=ddrnac&' +parameters
-
-    @staticmethod
-    def read_nodelist(nodelist):
-        """
-        Utility method to read the content of a nodeList
-        :param nodelist:
-        :return: string of the xml element
-        """
-        if nodelist:
-            return " ".join(t.nodeValue for t in nodelist[0].childNodes if t.nodeType == t.TEXT_NODE)
-        else:
-            return None
-
-    def readMetadata(self, xml_tag):
-        """
-        Read the metadata of the observation
-        :param: xml that contains al the metadata information
-        :return: dictionary with all metadata read
-        """
-        from matisseRestNasa.MatisseNASA import matisse_configuration as cfg
-
-        return {(key, self.read_nodelist(xml_tag.getElementsByTagName(value)))
-                for key, value in cfg.metadata.iteritems()}
-
-    def fetchData(self, a_url):
+    def fetchDataWithPt(self, pt):
 
         """
         Open the connection to the NASA Rest interface and  to find all the
@@ -79,14 +45,17 @@ class NASAQueryMercury(NASAQuery):
         e.g is CN0266147010M_IF_4.IMG
 
         Return:
-            a list of URL where to download products files
+
+          a dictionary with metadata information and files url.
+          in case of analysis of the geometry xml, only the information regarding
+          the file_path is saved
 
         """
 
         info_files = {}
         files = []
         try:
-            xmlNASA = urllib2.urlopen(a_url)
+            xmlNASA = urllib2.urlopen(self.composeURL(pt))
             xmldoc = minidom.parseString(xmlNASA.read())
             products = xmldoc.getElementsByTagName('Product')
 
@@ -100,8 +69,14 @@ class NASAQueryMercury(NASAQuery):
                 if self.read_nodelist(type_tag) == 'Product':
                     url_tag = a_tag.getElementsByTagName('URL')
                     files.append(self.read_nodelist(url_tag))
-                    info_files[observation_id] = {'metadata': metadata,
-                                                  'files': files}
+
+                    if pt == 'ddrnac':
+                        info_files.setdefault(observation_id, {}).update({'geometry_files': files})
+                    else:
+
+                        info_files.setdefault(observation_id, {}).update({'metadata': metadata,
+                                                                         'files': files})
+
                     #one product file per <Product_file> tag
                     #continue the loop
                     continue
@@ -112,7 +87,7 @@ class NASAQueryMercury(NASAQuery):
                 #check if there was an error
                 error = xmldoc.getElementsByTagName('Error')
                 if error:
-                    logging.critical("Error retrieving data for URL %s: \n" % a_url +
+                    logging.critical("Error retrieving data for URL %s: \n" % self.composeURL(pt) +
                                      self.read_nodelist(error))
                 else:
                     logging.critical("Query didn't produce any files. Please check parameters")
@@ -125,7 +100,7 @@ class NASAQueryMercury(NASAQuery):
 
         return info_files
 
-    def associateFiles(self):
+    def fetchData(self):
         """
         Call the fetch data for all the composed URLs
         fetch all information and associate the files to a unique ID
@@ -133,50 +108,45 @@ class NASAQueryMercury(NASAQuery):
            Dictionary key -> observation ID
                       values -> associate files
         """
-        all_files, result = [], {}
-
-        for a_url in self.composeURL():
+        result = {}
+        #type of pt to query to obtain the product files (cdrnac)
+        # and geometry files (ddrnac)
+        pt = ['cdrnac', 'ddrnac']
+        for a_pt in pt:
             try:
-                tmp_result = self.fetchData(a_url)
-
-                for key in tmp_result:
-                    if key in result:
-                        result[key]['files'].extend(tmp_result[key]['files'])
-                    else:
-                        result[key] = tmp_result[key]
+                if not result:
+                    result = self.fetchDataWithPt(a_pt)
+                else:
+                    tmp_result = self.fetchDataWithPt(a_pt)
+                    for key in tmp_result:
+                        result.setdefault(key, {}).update(tmp_result[key])
 
             except NASAQueryException as e:
                 logging.critical(e)
                 continue
 
+
         return result
 
-
-def valid_date(s):
-    """"
-    Validation of the command line options.
-    Check if a date is of the right format
-    e.g. = 2013-01-08T15:39:05.169
-
-    Arg: string
-    Return: string
-    Raise ArgumentTypeError
+def add_required_arguments(parser):
+    """
+    set specific  parameters to the command line parser
+    :param parser:
+    :return:
     """
 
-    try:
-        datetime.strptime(s, "%Y-%m-%dT%H:%M:%S.%f")
-        #date string is well formatted
-        return s
-    except ValueError:
-        msg = "Not a valid date: '{0}'.".format(s)
-        raise argparse.ArgumentTypeError(msg)
+    requiredNamed = parser.add_argument_group('required  arguments')
+    requiredNamed.add_argument('--ihid', dest='ihid', help="instrument host ID", choices=NASAparserconfig.ihid_mercury,
+                               required=True)
+    requiredNamed.add_argument('--iid', dest='iid', help="instrument  ID", choices=NASAparserconfig.iid_mercury,
+                               required=True)
 
 
 def main(parser):
 
-    #creates the NASAQuery obj
-    nq = NASAQuery()
-    # Parse the arguments and directly load in the NASAQuery namespace
+     #creates the NASAQueryMercury obj
+    nq = NASAQueryMercury()
+    # Parse the arguments and directly load in the NASAQueryMercury namespace
     args = parser.parse_args(namespace=nq)
 
     #setup the logging
@@ -187,20 +157,14 @@ def main(parser):
     else:
         logging.basicConfig(format=log_format, level=logging.INFO)
 
-    #associate the files
-    info_files = nq.associateFiles()
-
-    for key in info_files:
-        #skipping only geometry: needs both
-        if len(info_files[key]['files']) > 1:
-            logging.info('Observation ID: %s' % key)
-            logging.info('\n'.join(['%s: %s' % (metadata_key, metadata_value) for metadata_key, metadata_value
-                                     in info_files[key]['metadata']]))
-            logging.info("fileID: %s;\n files: \n%s" % (key, '\n'.join(info_files[key]['files'])))
+    info_files = nq.fetchData()
+    nq.print_info(info_files, logging)
 
 
 if __name__ == "__main__":
 
+    parser = NASAparserconfig.argumentParser('Matisse Nasa query for the Mercury target')
+    add_required_arguments(parser)
     main(parser)
 
 

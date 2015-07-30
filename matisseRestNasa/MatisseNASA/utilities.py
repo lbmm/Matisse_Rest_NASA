@@ -1,3 +1,7 @@
+"""
+Utility module for the package MatisseNASA
+"""
+
 
 from datetime import datetime
 import argparse
