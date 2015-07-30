@@ -103,8 +103,11 @@ class NASAQuery(object):
                 if 'geometry_files' in value:
                     logging.info("geometry_files: %s" % '\n'.join(value['geometry_files']))
             else:
-                logging.info(key)
+
                 all_info_dict = value['metadata']
+                all_info_dict['id'] = key
+                all_info_dict['instrument_name'] = self.ihid
+                all_info_dict['instrumentid'] = self.iid
                 file_path = ''.join(value['files']).split("/")
 
                 all_info_dict['name'] = file_path[-1]
