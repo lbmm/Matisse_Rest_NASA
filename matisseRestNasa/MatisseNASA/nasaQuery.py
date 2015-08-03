@@ -93,6 +93,11 @@ class NASAQuery(object):
         :return: logging filled with info
         """
 
+        #this is need for the matisse integration
+        if not self.verbose:
+           logging.info('{')
+           logging.info('"aaData": [')
+
         for key, value in info_files.iteritems():
 
             if self.verbose:
@@ -117,4 +122,10 @@ class NASAQuery(object):
                     all_info_dict['geometry_files'] = ' '.join(value['geometry_files'])
 
                 logging.info(json.dumps(all_info_dict))
+
+        #this is need for the matisse integration
+        if not self.verbose:
+            logging.info(']')
+            logging.info('}')
+
 
