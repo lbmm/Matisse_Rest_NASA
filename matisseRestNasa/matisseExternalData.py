@@ -9,12 +9,13 @@ python matisseExternalData.py
 
 Matisse query for external catalog
 
+
 optional arguments:
   -h, --help            show this help message and exit
-  --c1min C1MIN         Min of first coordinate (in degrees by default)
-  --c1max C1MAX         Max of first coordinate (in degrees by default)
-  --c2min C2MIN         Min of second coordinate (in degrees by default)
-  --c2max C2MAX         Max of second coordinate (in degrees by default)
+  --c1min C1MIN         Min Longitude (in degrees by default)
+  --c1max C1MAX         Max Longitude (in degrees by default)
+  --c2min C2MIN         Min Latitude (in degrees by default)
+  --c2max C2MAX         Max Latitude (in degrees by default)
   --Time_min TIME_MIN   Acquisition start time - format YYYY-MM-DDTHH:MM:SS.m
   --Time_max TIME_MAX   Acquisition stop time - format YYYY-MM-DDTHH:MM:SS.m
   --Incidence_min INCIDENCE_MIN
@@ -93,16 +94,15 @@ if __name__ == "__main__":
                                required=True)
     requiredNamed.add_argument('--iid', help="instrument  ID",
                                required=True)
-
     #coordinates (c1, c2, c3)
-    parser.add_argument('--c1min',
-                        help="Min of first coordinate (in degrees by default)")
-    parser.add_argument('--c1max',
-                        help="Max of first coordinate (in degrees by default)")
-    parser.add_argument('--c2min',
-                        help="Min of second coordinate (in degrees by default) ")
-    parser.add_argument('--c2max',
-                        help="Max of second coordinate (in degrees by default) ")
+    parser.add_argument('--c1min', dest='westernlon', type=float,
+                        help="Min Longitude  (in degrees by default)")
+    parser.add_argument('--c1max', dest='easternlon', type=float,
+                        help="Max Longitude (in degrees by default)")
+    parser.add_argument('--c2min', type=float, dest='minlat',
+                        help="Min Latitude (in degrees by default) ")
+    parser.add_argument('--c2max', type=float, dest='maxlat',
+                        help="Max Latitude(in degrees by default) ")
 
     #times
     parser.add_argument('--Time_min',

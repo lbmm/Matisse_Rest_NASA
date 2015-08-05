@@ -11,11 +11,12 @@ python matisseExternalData.py
 Matisse query for external catalog
 
 optional arguments:
+
   -h, --help            show this help message and exit
-  --c1min C1MIN         Min of first coordinate (in degrees by default)
-  --c1max C1MAX         Max of first coordinate (in degrees by default)
-  --c2min C2MIN         Min of second coordinate (in degrees by default)
-  --c2max C2MAX         Max of second coordinate (in degrees by default)
+  --c1min C1MIN         Min Longitude (in degrees by default)
+  --c1max C1MAX         Max Longitude (in degrees by default)
+  --c2min C2MIN         Min Latitude (in degrees by default)
+  --c2max C2MAX         Max Latitude (in degrees by default)
   --Time_min TIME_MIN   Acquisition start time - format YYYY-MM-DDTHH:MM:SS.m
   --Time_max TIME_MAX   Acquisition stop time - format YYYY-MM-DDTHH:MM:SS.m
   --Incidence_min INCIDENCE_MIN

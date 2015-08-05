@@ -19,13 +19,13 @@ def argumentParser(description=''):
 
     #coordinates (c1, c2, c3)
     parser.add_argument('--c1min', dest='westernlon', type=float,
-                        help="Min of first coordinate (in degrees by default)")
+                        help="Min Longitude  (in degrees by default)")
     parser.add_argument('--c1max', dest='easternlon', type=float,
-                        help="Max of first coordinate (in degrees by default)")
+                        help="Max Longitude (in degrees by default)")
     parser.add_argument('--c2min', type=float, dest='minlat',
-                        help="Min of second coordinate (in degrees by default) ")
+                        help="Min Latitude (in degrees by default) ")
     parser.add_argument('--c2max', type=float, dest='maxlat',
-                        help="Max of second coordinate (in degrees by default) ")
+                        help="Max Latitude(in degrees by default) ")
 
     #times
     parser.add_argument('--Time_min', dest='minobtime', type=valid_date,
