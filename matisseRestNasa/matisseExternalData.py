@@ -95,13 +95,13 @@ if __name__ == "__main__":
     requiredNamed.add_argument('--iid', help="instrument  ID",
                                required=True)
     #coordinates (c1, c2, c3)
-    parser.add_argument('--c1min', dest='westernlon', type=float,
+    parser.add_argument('--c1min',
                         help="Min Longitude  (in degrees by default)")
-    parser.add_argument('--c1max', dest='easternlon', type=float,
+    parser.add_argument('--c1max',
                         help="Max Longitude (in degrees by default)")
-    parser.add_argument('--c2min', type=float, dest='minlat',
+    parser.add_argument('--c2min',
                         help="Min Latitude (in degrees by default) ")
-    parser.add_argument('--c2max', type=float, dest='maxlat',
+    parser.add_argument('--c2max',
                         help="Max Latitude(in degrees by default) ")
 
     #times
