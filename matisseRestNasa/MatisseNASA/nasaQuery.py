@@ -98,7 +98,7 @@ class NASAQuery(object):
            logging.info('{')
            logging.info('"aaData": [')
 
-        for key, value in info_files.iteritems():
+        for i, (key, value)  in enumerate(info_files.iteritems()):
 
             if self.verbose:
                 logging.info('Observation ID: %s' % key)
@@ -122,6 +122,9 @@ class NASAQuery(object):
                     all_info_dict['geometry_files'] = ' '.join(value['geometry_files'])
 
                 logging.info(json.dumps(all_info_dict))
+                if i != len(info_files)-1:
+                   logging.info(',')
+
 
         #this is need for the matisse integration
         if not self.verbose:

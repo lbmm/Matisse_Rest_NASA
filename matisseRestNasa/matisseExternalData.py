@@ -70,11 +70,19 @@ def main(parser):
                                stderr=subprocess.PIPE)
 
     # wait for the process to terminate
-    out, err = process.communicate()
-
-    nice_print(out)
+    err, out = process.communicate()
+    
+    #returning errors
     nice_print(err)
+    if not err:
+      #not errors 
+      nice_print("NASA ODE contacted")
+    
+    #in case that we have returns code
     nice_print(process.returncode)
+    
+    # output
+    nice_print(out)
 
 
 if __name__ == "__main__":
