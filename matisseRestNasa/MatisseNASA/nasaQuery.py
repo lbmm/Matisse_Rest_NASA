@@ -48,7 +48,6 @@ class NASAQuery(object):
         parameters = '&'.join(['%s=%s' % (item, value) for item, value in self.__dict__.iteritems()
                                if value])
 
-        print __REST_NASA__ + '&pt=%s&' % pt + parameters
         return __REST_NASA__ + '&pt=%s&' % pt + parameters
 
 
