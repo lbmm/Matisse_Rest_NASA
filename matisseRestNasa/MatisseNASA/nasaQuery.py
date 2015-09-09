@@ -48,6 +48,7 @@ class NASAQuery(object):
         parameters = '&'.join(['%s=%s' % (item, value) for item, value in self.__dict__.iteritems()
                                if value])
 
+        print __REST_NASA__ + '&pt=%s&' % pt + parameters
         return __REST_NASA__ + '&pt=%s&' % pt + parameters
 
 
@@ -112,7 +113,7 @@ class NASAQuery(object):
                 all_info_dict = value['metadata']
                 all_info_dict['id'] = key
                 all_info_dict['instrument_name'] = self.ihid
-                all_info_dict['instrumentid'] = self.iid
+                all_info_dict['instrid'] = self.iid
                 file_path = ''.join(value['files']).split("/")
 
                 all_info_dict['name'] = file_path[-1]

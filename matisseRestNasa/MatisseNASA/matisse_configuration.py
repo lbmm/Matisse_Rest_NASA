@@ -11,7 +11,7 @@ metadata translates fields name from Nasa namespace to
 """
 
 metadata = OrderedDict([
-    ("startTime", "UTC_start_times"),
+    ("startTime", "UTC_start_time"),
     ("stopTime", "UTC_stop_time"),
     ("c2min", "Minimum_latitude"),
     ("c2max", "Maximum_latitude"),
