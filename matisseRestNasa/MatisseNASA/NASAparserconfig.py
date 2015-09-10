@@ -18,14 +18,14 @@ def argumentParser(description=''):
     # Define the command line options
 
     #coordinates (c1, c2, c3)
-    parser.add_argument('--c1min', dest='westernlon', type=float,
-                        help="Min Longitude  (in degrees by default)")
-    parser.add_argument('--c1max', dest='easternlon', type=float,
-                        help="Max Longitude (in degrees by default)")
-    parser.add_argument('--c2min', type=float, dest='minlat',
-                        help="Min Latitude (in degrees by default) ")
-    parser.add_argument('--c2max', type=float, dest='maxlat',
-                        help="Max Latitude(in degrees by default) ")
+    parser.add_argument('--c1min', dest='westernlon',
+                        help="Min Longitude  (in degrees by default)", required=True)
+    parser.add_argument('--c1max', dest='easternlon',
+                        help="Max Longitude (in degrees by default)", required=True)
+    parser.add_argument('--c2min',  dest='minlat',
+                        help="Min Latitude (in degrees by default) ", required=True)
+    parser.add_argument('--c2max',  dest='maxlat',
+                        help="Max Latitude(in degrees by default) ", required=True)
 
     #times
     parser.add_argument('--Time_min', dest='minobtime', type=valid_date,
@@ -79,12 +79,12 @@ ihid_moon = ['CH1-ORB', 'CLEM', 'LRO']
 iid_moon = ['M3', 'HIRES', 'LROC']
 
 
-configurations = {'CH1-ORB': {'M3':
+configurations_moon = {'CH1-ORB': {'M3':
                                   {'pt': 'CALIV3'}},
-                  'CLEM': {'HIRES':
-                               {'pt': 'EDR'}},
-                  'LRO': {'LROC':
-                              {'pt': 'CDRNAC'}}}
+                       'CLEM':    {'HIRES':
+                                  {'pt': 'EDR'}},
+                       'LRO':     {'LROC':
+                                  {'pt': 'CDRNAC'}}}
 
 """
 Configuration options for The Mercury data retrieval
@@ -95,6 +95,13 @@ List all the accepted IHID and all the IID
 ihid_mercury = ['messenger']
 
 #Moon iIID (Instrument) that the script accepts
-iid_mercury = ['mdis-nac']
+iid_mercury = ['mdis-nac-RA', 'mdis-nac-IF']
+
+#for each type of instrument the type of the image that we are looking for
+configurations_mercury = {'mdis-nac-RA': {'iid': 'mdis-nac', 'IMG_TYPE': 'RA'},
+                          'mdis-nac-IF': {'iid': 'mdis-nac', 'IMG_TYPE': 'IF'}}
 
 
+
+mercury_files_pt = 'cdrnac'
+mercury_geometry_pt = 'ddrnac'

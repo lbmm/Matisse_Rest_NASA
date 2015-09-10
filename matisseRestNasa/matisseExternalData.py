@@ -102,15 +102,16 @@ if __name__ == "__main__":
                                required=True)
     requiredNamed.add_argument('--iid', help="instrument  ID",
                                required=True)
-    #coordinates (c1, c2, c3)
+
+    #coordinates (c1, c2, c3) #required
     parser.add_argument('--c1min',
-                        help="Min Longitude  (in degrees by default)")
+                        help="Min Longitude  (in degrees by default)", required=True)
     parser.add_argument('--c1max',
-                        help="Max Longitude (in degrees by default)")
+                        help="Max Longitude (in degrees by default)", required=True)
     parser.add_argument('--c2min',
-                        help="Min Latitude (in degrees by default) ")
+                        help="Min Latitude (in degrees by default) ", required=True)
     parser.add_argument('--c2max',
-                        help="Max Latitude(in degrees by default) ")
+                        help="Max Latitude(in degrees by default) ", required=True)
 
     #times
     parser.add_argument('--Time_min',

@@ -98,7 +98,7 @@ class NASAQuery(object):
            logging.info('{')
            logging.info('"aaData": [')
 
-        for i, (key, value)  in enumerate(info_files.iteritems()):
+        for i, (key, value) in enumerate(info_files.iteritems()):
 
             if self.verbose:
                 logging.info('Observation ID: %s' % key)
@@ -111,8 +111,6 @@ class NASAQuery(object):
 
                 all_info_dict = value['metadata']
                 all_info_dict['id'] = key
-                all_info_dict['instrument_name'] = self.ihid
-                all_info_dict['instrid'] = self.iid
                 file_path = ''.join(value['files']).split("/")
 
                 all_info_dict['name'] = file_path[-1]

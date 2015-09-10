@@ -1,9 +1,7 @@
 # -*- coding:utf-8 -*-
 import urllib2
-from datetime import datetime
 from xml.dom import minidom
 from xml.parsers import expat
-import argparse
 import logging
 
 
@@ -35,7 +33,7 @@ class NASAQueryMercury(NASAQuery):
         self.target = 'mercury'
 
 
-    def fetchDataWithPt(self, pt):
+    def fetchImageFiles(self, pt, iid):
 
         """
         Open the connection to the NASA Rest interface and  to find all the
@@ -53,33 +51,26 @@ class NASAQueryMercury(NASAQuery):
         """
 
         info_files = {}
-        files = []
+        files = None
         try:
             xmlNASA = urllib2.urlopen(self.composeURL(pt))
             xmldoc = minidom.parseString(xmlNASA.read())
             products = xmldoc.getElementsByTagName('Product')
+            img_type = NASAparserconfig.configurations_mercury[iid]['IMG_TYPE']
 
             for a_tag in products:
 
-                observation_id = self.read_nodelist(a_tag.getElementsByTagName('Observation_id'))
+                pdsid = self.read_nodelist(a_tag.getElementsByTagName('pdsid'))
+                observation_id = pdsid[2:pdsid.find('_')]
+                type_of_file = pdsid[pdsid.find('_')+1:-2]
 
                 metadata = self.readMetadata(a_tag)
-                type_tag = a_tag.getElementsByTagName('Type')
 
-                if self.read_nodelist(type_tag) == 'Product':
-                    url_tag = a_tag.getElementsByTagName('URL')
-                    files.append(self.read_nodelist(url_tag))
-
-                    if pt == 'ddrnac':
-                        info_files.setdefault(observation_id, {}).update({'geometry_files': files})
-                    else:
-
+                if img_type == type_of_file:
+                        files = self.read_nodelist(a_tag.getElementsByTagName('LabelURL'))
                         info_files.setdefault(observation_id, {}).update({'metadata': metadata,
-                                                                         'files': files})
+                                                                          'files': files})
 
-                    #one product file per <Product_file> tag
-                    #continue the loop
-                    continue
             #no result: two options
             #1- NASA page returns error
             #2- query didn't produce output
@@ -100,7 +91,35 @@ class NASAQueryMercury(NASAQuery):
 
         return info_files
 
-    def fetchData(self):
+
+    def fetchGeometriesFiles(self, pt, result):
+
+        """
+        TODO
+
+        """
+
+        try:
+            xmlNASA = urllib2.urlopen(self.composeURL(pt))
+            xmldoc = minidom.parseString(xmlNASA.read())
+            products = xmldoc.getElementsByTagName('Product')
+
+            for a_tag in products:
+                geometry_files = []
+                pdsid = self.read_nodelist(a_tag.getElementsByTagName('pdsid'))
+                observation_id = pdsid[2:pdsid.find('_')]
+
+                if observation_id in result:
+                    geometry_files.append(self.read_nodelist(a_tag.getElementsByTagName('LabelURL')))
+                    result[observation_id]['geometry_files'] = geometry_files
+        except urllib2.URLError as e:
+            logging.critical(e)
+        except expat.ExpatError as e:
+            logging.critical(e)
+
+        return result
+
+    def combineData(self, iid):
         """
         Call the fetch data for all the composed URLs
         fetch all information and associate the files to a unique ID
@@ -109,22 +128,15 @@ class NASAQueryMercury(NASAQuery):
                       values -> associate files
         """
         result = {}
-        #type of pt to query to obtain the product files (cdrnac)
-        # and geometry files (ddrnac)
-        pt = ['cdrnac', 'ddrnac']
-        for a_pt in pt:
-            try:
-                if not result:
-                    result = self.fetchDataWithPt(a_pt)
-                else:
-                    tmp_result = self.fetchDataWithPt(a_pt)
-                    for key in tmp_result:
-                        result.setdefault(key, {}).update(tmp_result[key])
 
-            except NASAQueryException as e:
-                logging.critical(e)
-                continue
+        try:
 
+           result = self.fetchImageFiles(NASAparserconfig.mercury_files_pt, iid)
+           #now fetchng the associate geometries
+           result = self.fetchGeometriesFiles(NASAparserconfig.mercury_geometry_pt, result)
+
+        except NASAQueryException as e:
+            logging.critical(e)
 
         return result
 
@@ -148,6 +160,10 @@ def main(parser):
     nq = NASAQueryMercury()
     # Parse the arguments and directly load in the NASAQueryMercury namespace
     args = parser.parse_args(namespace=nq)
+    #we will use this only internally to know what type of query to perform
+    iid = nq.iid
+    #change the iid accordingly with the configuration file
+    nq.iid = NASAparserconfig.configurations_mercury[iid]['iid']
 
     #setup the logging
     log_format = "%(message)s"
@@ -157,7 +173,7 @@ def main(parser):
     else:
         logging.basicConfig(format=log_format, level=logging.INFO)
 
-    info_files = nq.fetchData()
+    info_files = nq.combineData(iid)
     nq.print_info(info_files, logging)
 
 

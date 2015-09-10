@@ -76,7 +76,7 @@ class NASAQueryMoon(NASAQuery):
 
         info_files = {}
         #select here what to read from the configuration define by mission and instrument
-        config = NASAparserconfig.configurations[self.ihid][self.iid]
+        config = NASAparserconfig.configurations_moon[self.ihid][self.iid]
         try:
 
             xmlNASA = urllib2.urlopen(self.composeURL(config['pt']))
